@@ -9,14 +9,22 @@ PORT = 123
 
 
 def main():
+    print("Enter server (empty for default): ")
+    server = input()
+    if len(server) == 0:
+        server = SERVER
+
     time_deltas = []
     for i in range(10):
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         client.settimeout(5.0)
         data = '\x1b' + 47 * '\0'
         sent_time = time.time() + BEGIN
-        client.sendto(data.encode('utf-8'), (SERVER, PORT))
-        data, address = client.recvfrom(1024)
+        try:
+            client.sendto(data.encode('utf-8'), (server, PORT))
+            data, address = client.recvfrom(1024)
+        except socket.timeout:
+            continue
         receive_time = time.time() + BEGIN
         if not data:
             continue
@@ -34,10 +42,15 @@ def main():
         delay = (receive_time - sent_time) + (transmit - receive) / 2
         # print("Delay: {}".format(delay))
         # print("Sent time: {}, receive_time: {}".format(sent_time, receive_time))
-        new_time = transmit + delay
-        time_deltas.append(new_time - receive_time)
+        time_deltas.append(transmit + delay - receive_time)
+
     delta = sum(time_deltas) / len(time_deltas)
-    print(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(time.time() + delta)))
+    print("\nMean delta: {} ms".format(delta))
+    sys_time = time.time()
+    new_time = sys_time + delta
+    print("System time: {}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(sys_time))))
+    print("Server time: {}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(new_time))))
+
 
 
 if __name__ == "__main__":
