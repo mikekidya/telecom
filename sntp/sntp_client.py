@@ -3,7 +3,7 @@ import struct
 import time
 
 
-SERVER = "0.uk.pool.ntp.org"
+SERVER = "ntp5.stratum2.ru"
 BEGIN = 2208988800
 PORT = 123
 
@@ -15,7 +15,7 @@ def main():
         server = SERVER
 
     time_deltas = []
-    for i in range(10):
+    for i in range(5):
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         client.settimeout(5.0)
         data = '\x1b' + 47 * '\0'
@@ -45,12 +45,11 @@ def main():
         time_deltas.append(transmit + delay - receive_time)
 
     delta = sum(time_deltas) / len(time_deltas)
-    print("\nMean delta: {} ms".format(delta))
+    print("\nMean delta: {} s".format(delta))
     sys_time = time.time()
     new_time = sys_time + delta
     print("System time: {}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(sys_time))))
     print("Server time: {}".format(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(new_time))))
-
 
 
 if __name__ == "__main__":
